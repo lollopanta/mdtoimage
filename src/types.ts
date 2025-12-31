@@ -1,5 +1,5 @@
 /**
- * Core type definitions for mdtoimage
+ * Core type definitions for @lollopanta/mdtoimage
  */
 
 export interface FontConfig {

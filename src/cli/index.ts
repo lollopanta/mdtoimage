@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI tool for mdtoimage
+ * CLI tool for @lollopanta/mdtoimage
  */
 
 import { Command } from 'commander';

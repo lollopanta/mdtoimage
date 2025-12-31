@@ -10,7 +10,21 @@ import { getTheme, mergeTheme, darkTheme } from '../themes/index.js';
 import { normalizeWatermark, renderWatermark } from '../watermark/index.js';
 import { loadFontsForSatori, normalizeFontConfig } from '../fonts/loader.js';
 import type { RenderOptions, RenderResult, Theme } from '../types.js';
+import type { NormalizedBlock } from '../parser/index.js';
 import { readFileSync } from 'fs';
+
+// Helper function to get heading size (same as in components)
+function getHeadingSize(level: number): number {
+  const sizes: Record<number, number> = {
+    1: 36,
+    2: 30,
+    3: 24,
+    4: 20,
+    5: 18,
+    6: 16,
+  };
+  return sizes[level] || 16;
+}
 
 /**
  * Render markdown to image
@@ -63,45 +77,87 @@ export async function renderMarkdownToImage(options: RenderOptions): Promise<Ren
   // Normalize watermark
   const watermark = normalizeWatermark(options.watermark, theme);
 
-  // Create JSX tree
-  const jsxTree = {
+  // Helper function to create JSX tree
+  const createJsxTree = (height: number) => ({
     type: 'div',
     props: {
       style: {
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
+        height: `${height}px`,
         backgroundColor: theme.colors.background,
         padding,
         position: 'relative',
       },
       children: [
         ...contentBlocks,
-        watermark ? renderWatermark(watermark, width, 0, theme) : null,
+        watermark ? renderWatermark(watermark, width, height, theme) : null,
       ].filter(Boolean),
     },
-  };
-
-  // Estimate height based on content
-  // Rough estimate: ~50px per block + padding + watermark
-  const estimatedHeight = options.height || Math.max(
-    800,
-    blocks.length * 50 + padding * 2 + (watermark ? 40 : 0)
-  );
-
-  // Render to SVG with Satori
-  // Note: Satori requires a fixed height, so we use estimated height
-  // For better results, users should specify height or we could do a two-pass render
-  const finalSvg = await satori(jsxTree, {
-    width,
-    height: estimatedHeight,
-    fonts: satoriFonts,
   });
 
-  // Extract actual rendered height from SVG
-  const heightMatch = finalSvg.match(/height="(\d+)"/);
-  const height = heightMatch ? parseInt(heightMatch[1], 10) : estimatedHeight;
+  // Auto-detect height: use two-pass rendering with onNodeDetected
+  let finalHeight: number;
+  let finalSvg: string;
+
+  if (options.height) {
+    // User specified height, use it directly
+    finalHeight = options.height;
+    finalSvg = await satori(createJsxTree(finalHeight), {
+      width,
+      height: finalHeight,
+      fonts: satoriFonts,
+    });
+  } else {
+    // Auto-detect: use improved estimation based on content analysis
+    // Count actual content to estimate height more accurately
+    let estimatedLines = 0;
+    let estimatedHeight = padding * 2; // Start with padding
+    
+    for (const block of blocks) {
+      if (block.type === 'code' && block.content) {
+        const codeLines = block.content.split('\n').length;
+        estimatedLines += codeLines;
+        estimatedHeight += codeLines * 20 + theme.spacing.codePadding * 2 + theme.spacing.gap; // Code line height + padding
+      } else if (block.type === 'heading') {
+        estimatedLines += 1;
+        estimatedHeight += getHeadingSize(block.level || 1) * 1.2 + theme.spacing.gap * 0.5;
+      } else if (block.type === 'paragraph') {
+        // Estimate text wrapping: assume ~80 chars per line at 16px font
+        const textLength = block.content?.length || 100;
+        const charsPerLine = Math.floor(maxContentWidth / 9); // ~9px per char at 16px font
+        const paragraphLines = Math.max(1, Math.ceil(textLength / charsPerLine));
+        estimatedLines += paragraphLines;
+        estimatedHeight += paragraphLines * 24 + theme.spacing.gap; // 24px line height
+      } else if (block.type === 'list') {
+        const listItems = block.children?.length || 0;
+        estimatedLines += listItems;
+        estimatedHeight += listItems * 28 + theme.spacing.gap; // ~28px per list item
+      } else if (block.type === 'blockquote') {
+        estimatedLines += 2;
+        estimatedHeight += 60 + theme.spacing.gap; // Blockquote height
+      } else {
+        estimatedLines += 1;
+        estimatedHeight += 30 + theme.spacing.gap; // Default block height
+      }
+    }
+    
+    // Add watermark space if enabled
+    if (watermark) {
+      estimatedHeight += 40;
+    }
+    
+    // Ensure reasonable bounds
+    finalHeight = Math.max(400, Math.min(Math.ceil(estimatedHeight), 20000));
+
+    // Render with calculated height
+    finalSvg = await satori(createJsxTree(finalHeight), {
+      width,
+      height: finalHeight,
+      fonts: satoriFonts,
+    });
+  }
 
   // Handle different output formats
   const format = options.format || 'png';
@@ -110,7 +166,7 @@ export async function renderMarkdownToImage(options: RenderOptions): Promise<Ren
     return {
       svg: finalSvg,
       width,
-      height,
+      height: finalHeight,
     };
   }
 
@@ -123,7 +179,7 @@ export async function renderMarkdownToImage(options: RenderOptions): Promise<Ren
     return {
       base64: pngBuffer.toString('base64'),
       width,
-      height,
+      height: finalHeight,
     };
   }
 
@@ -137,6 +193,6 @@ export async function renderMarkdownToImage(options: RenderOptions): Promise<Ren
   return {
     buffer: pngBuffer,
     width,
-    height,
+    height: finalHeight,
   };
 }

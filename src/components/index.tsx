@@ -62,6 +62,8 @@ async function renderHeading(block: NormalizedBlock, theme: Theme, maxWidth?: nu
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         fontSize,
         fontWeight,
         color,
@@ -84,6 +86,8 @@ async function renderParagraph(block: NormalizedBlock, theme: Theme, maxWidth?: 
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         fontSize: 16,
         lineHeight: 1.6,
         color: theme.colors.text,
@@ -144,6 +148,8 @@ async function renderCodeBlock(block: NormalizedBlock, theme: Theme, maxWidth?: 
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         backgroundColor: theme.colors.code.background,
         color: theme.colors.code.text,
         fontFamily,
@@ -186,6 +192,8 @@ async function renderBlockquote(block: NormalizedBlock, theme: Theme, maxWidth?:
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         borderLeft: `4px solid ${theme.colors.blockquote.border}`,
         backgroundColor: theme.colors.blockquote.background,
         paddingLeft: theme.spacing.blockquotePadding,
@@ -263,6 +271,8 @@ async function renderList(block: NormalizedBlock, theme: Theme, maxWidth?: numbe
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         marginBottom: theme.spacing.gap,
         maxWidth: maxWidth || '100%',
       },
@@ -280,6 +290,8 @@ async function renderListItem(block: NormalizedBlock, theme: Theme, maxWidth?: n
     type: 'div',
     props: {
       style: {
+        display: 'flex',
+        flexDirection: 'column',
         flex: 1,
         fontSize: 16,
         lineHeight: 1.6,

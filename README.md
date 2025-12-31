@@ -1,4 +1,4 @@
-# mdtoimage
+# @lollopanta/mdtoimage
 
 A production-ready Node.js library that converts Markdown files or strings into beautiful SVG and PNG images using **Satori** and **Sharp**. No browser required! 🚀
 
@@ -16,7 +16,7 @@ A production-ready Node.js library that converts Markdown files or strings into 
 ## Installation
 
 ```bash
-npm install mdtoimage
+npm install @lollopanta/mdtoimage
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ npm install mdtoimage
 ### Programmatic API
 
 ```js
-import { renderMarkdownToImage } from 'mdtoimage';
+import { renderMarkdownToImage } from '@lollopanta/mdtoimage';
 
 await renderMarkdownToImage({
   input: 'README.md', // or markdown string
@@ -97,7 +97,7 @@ fonts?: {
 ```ts
 watermark?: false | {
   enabled?: boolean;      // default: true
-  text?: string;          // default: "Generated with mdtoimage"
+  text?: string;          // default: "Generated with @lollopanta/mdtoimage"
   opacity?: number;       // default: 0.3
   fontSize?: number;      // default: 12
   padding?: number;       // default: 16
@@ -120,7 +120,7 @@ watermark?: false | {
 ## Custom Themes
 
 ```js
-import { renderMarkdownToImage, lightTheme } from 'mdtoimage';
+import { renderMarkdownToImage, lightTheme } from '@lollopanta/mdtoimage';
 
 const customTheme = {
   ...lightTheme,
@@ -170,7 +170,7 @@ await renderMarkdownToImage({
 ### Basic Example
 
 ```js
-import { renderMarkdownToImage } from 'mdtoimage';
+import { renderMarkdownToImage } from '@lollopanta/mdtoimage';
 
 const result = await renderMarkdownToImage({
   input: '# Hello World\n\nThis is **markdown** converted to an image!',

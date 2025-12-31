@@ -1,5 +1,5 @@
 /**
- * mdtoimage - Main entry point
+ * @lollopanta/mdtoimage - Main entry point
  */
 
 export { renderMarkdownToImage } from './renderer/index.js';
