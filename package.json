@@ -1,0 +1,48 @@
+{
+  "name": "md-to-image",
+  "version": "1.0.0",
+  "description": "Convert Markdown to images using Satori and Sharp",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "md-to-image": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "markdown",
+    "image",
+    "svg",
+    "png",
+    "satori",
+    "sharp",
+    "converter"
+  ],
+  "author": "lollopanta",
+  "license": "MIT",
+  "dependencies": {
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "satori": "^0.18.3",
+    "sharp": "^0.34.5",
+    "shiki": "^3.20.0",
+    "commander": "^14.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
