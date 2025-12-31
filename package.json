@@ -17,7 +17,7 @@
     }
   },
   "bin": {
-    "md-to-image": "./dist/cli/index.js"
+    "mdtoimage": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",

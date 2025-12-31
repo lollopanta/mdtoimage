@@ -6,7 +6,7 @@ import type { Theme, WatermarkConfig } from '../types.js';
 
 const DEFAULT_WATERMARK: Required<WatermarkConfig> = {
   enabled: true,
-  text: 'Generated with md-to-image',
+  text: 'Generated with mdtoimage',
   opacity: 0.3,
   fontSize: 12,
   padding: 16,

@@ -1,4 +1,4 @@
-# md-to-image
+# mdtoimage
 
 A production-ready Node.js library that converts Markdown files or strings into beautiful SVG and PNG images using **Satori** and **Sharp**. No browser required! 🚀
 
@@ -16,7 +16,7 @@ A production-ready Node.js library that converts Markdown files or strings into 
 ## Installation
 
 ```bash
-npm install md-to-image
+npm install mdtoimage
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ npm install md-to-image
 ### Programmatic API
 
 ```js
-import { renderMarkdownToImage } from 'md-to-image';
+import { renderMarkdownToImage } from 'mdtoimage';
 
 await renderMarkdownToImage({
   input: 'README.md', // or markdown string
@@ -43,22 +43,22 @@ await renderMarkdownToImage({
 
 ```bash
 # Basic usage
-md-to-image README.md -o out.png
+mdtoimage README.md -o out.png
 
 # With options
-md-to-image README.md -o out.png --theme dark --width 1200
+mdtoimage README.md -o out.png --theme dark --width 1200
 
 # Disable watermark
-md-to-image README.md -o out.png --no-watermark
+mdtoimage README.md -o out.png --no-watermark
 
 # Custom watermark
-md-to-image README.md -o out.png --watermark-text "My Custom Text" --watermark-opacity 0.5
+mdtoimage README.md -o out.png --watermark-text "My Custom Text" --watermark-opacity 0.5
 
 # Export as SVG
-md-to-image README.md -o out.svg --format svg
+mdtoimage README.md -o out.svg --format svg
 
 # With custom fonts
-md-to-image README.md -o out.png \
+mdtoimage README.md -o out.png \
   --font-body ./fonts/Inter-Regular.ttf \
   --font-heading ./fonts/Inter-Bold.ttf \
   --font-code ./fonts/JetBrainsMono-Regular.ttf
@@ -97,7 +97,7 @@ fonts?: {
 ```ts
 watermark?: false | {
   enabled?: boolean;      // default: true
-  text?: string;          // default: "Generated with md-to-image"
+  text?: string;          // default: "Generated with mdtoimage"
   opacity?: number;       // default: 0.3
   fontSize?: number;      // default: 12
   padding?: number;       // default: 16
@@ -120,7 +120,7 @@ watermark?: false | {
 ## Custom Themes
 
 ```js
-import { renderMarkdownToImage, lightTheme } from 'md-to-image';
+import { renderMarkdownToImage, lightTheme } from 'mdtoimage';
 
 const customTheme = {
   ...lightTheme,
@@ -170,7 +170,7 @@ await renderMarkdownToImage({
 ### Basic Example
 
 ```js
-import { renderMarkdownToImage } from 'md-to-image';
+import { renderMarkdownToImage } from 'mdtoimage';
 
 const result = await renderMarkdownToImage({
   input: '# Hello World\n\nThis is **markdown** converted to an image!',

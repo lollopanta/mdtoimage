@@ -1,5 +1,5 @@
 /**
- * Core type definitions for md-to-image
+ * Core type definitions for mdtoimage
  */
 
 export interface FontConfig {

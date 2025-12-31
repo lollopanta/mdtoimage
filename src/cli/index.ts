@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI tool for md-to-image
+ * CLI tool for mdtoimage
  */
 
 import { Command } from 'commander';
@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync } from 'fs';
 const program = new Command();
 
 program
-  .name('md-to-image')
+  .name('mdtoimage')
   .description('Convert Markdown files to images')
   .version('1.0.0')
   .argument('<input>', 'Input Markdown file or string')

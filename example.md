@@ -1,6 +1,6 @@
 # Example Markdown
 
-This is a **sample markdown** file to demonstrate `md-to-image`.
+This is a **sample markdown** file to demonstrate `mdtoimage`.
 
 ## Features
 

@@ -1,5 +1,5 @@
 /**
- * md-to-image - Main entry point
+ * mdtoimage - Main entry point
  */
 
 export { renderMarkdownToImage } from './renderer/index.js';
