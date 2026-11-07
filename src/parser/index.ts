@@ -4,7 +4,12 @@
 
 import { remark } from 'remark';
 import remarkGfm from 'remark-gfm';
+import remarkMdx from 'remark-mdx';
 import type { Root, Node } from 'mdast';
+import { parseDocument } from 'htmlparser2';
+import type { Element, Node as HtmlNode } from 'domhandler';
+import { micromark } from 'micromark';
+import { gfm, gfmHtml } from 'micromark-extension-gfm';
 
 export interface NormalizedBlock {
   type: string;
@@ -19,13 +24,18 @@ export interface NormalizedBlock {
   alt?: string; // For images
   checked?: boolean; // For task lists
   depth?: number; // For list items
+  attributes?: Record<string, string>;
 }
 
 /**
  * Parse markdown string to AST
  */
-export async function parseMarkdown(markdown: string): Promise<Root> {
-  const processor = remark().use(remarkGfm);
+export async function parseMarkdown(markdown: string, mdx = false): Promise<Root> {
+  if (!mdx) {
+    const html = micromark(markdown, { extensions: [gfm()], htmlExtensions: [gfmHtml()] });
+    return { type: 'root', children: [{ type: 'html', value: html }] } as unknown as Root;
+  }
+  const processor = remark().use(remarkGfm).use(remarkMdx);
   const tree = await processor.parse(markdown);
   return tree;
 }
@@ -112,9 +122,23 @@ function normalizeNode(node: Node): NormalizedBlock[] {
     }
 
     case 'html': {
-      // Skip HTML nodes for now
+      const html = node as any;
+      blocks.push(...normalizeHtml(String(html.value || '')));
       break;
     }
+
+    case 'mdxJsxFlowElement':
+    case 'mdxJsxTextElement': {
+      const jsx = node as any;
+      const children = normalizeAST({ type: 'root', children: jsx.children || [] } as Root);
+      blocks.push({ type: jsx.name === 'br' ? 'htmlBreak' : 'htmlElement', content: jsx.name || 'div', children });
+      break;
+    }
+    case 'mdxFlowExpression':
+    case 'mdxTextExpression':
+    case 'mdxjsEsm':
+      // Expressions, imports, and exports are intentionally not evaluated.
+      break;
 
     default:
       // Unknown node type, skip
@@ -124,11 +148,56 @@ function normalizeNode(node: Node): NormalizedBlock[] {
   return blocks;
 }
 
+function normalizeHtml(raw: string): NormalizedBlock[] {
+  return normalizeHtmlChildren(parseDocument(raw).children);
+}
+
+function normalizeHtmlChildren(nodes: HtmlNode[]): NormalizedBlock[] {
+  return nodes.flatMap((node) => {
+    if ('data' in node && typeof node.data === 'string') {
+      const value = node.data.replace(/\s+/g, ' ');
+      return value.trim() ? [{ type: 'text', content: value }] : [];
+    }
+    if (!('name' in node)) return [];
+    const element = node as Element;
+    const tag = element.name.toLowerCase();
+    const attrs = element.attribs || {};
+    const children = normalizeHtmlChildren(element.children);
+    if (tag === 'pre') {
+      const code = element.children.find(child => child.type === 'tag' && child.name === 'code') as Element | undefined;
+      const value = code ? code.children.map(child => 'data' in child ? child.data : '').join('') : element.children.map(child => 'data' in child ? child.data : '').join('');
+      const language = code?.attribs.class?.match(/(?:^|\s)language-([\w+-]+)/)?.[1];
+      return [{ type: 'code', content: value.replace(/\n$/, ''), language }];
+    }
+    if (tag === 'img') return [{ type: 'image', url: attrs.src, alt: attrs.alt || '', attributes: attrs }];
+    if (tag === 'br') return [{ type: 'htmlBreak' }];
+    if (tag === 'hr') return [{ type: 'thematicBreak' }];
+    if (/^h[1-6]$/.test(tag)) return [{ type: 'heading', level: Number(tag[1]), children }];
+    if (tag === 'p') return [{ type: 'paragraph', children }];
+    if (tag === 'blockquote') return [{ type: 'blockquote', children }];
+    if (tag === 'table') return [{ type: 'table', children }];
+    if (tag === 'thead' || tag === 'tbody') return children;
+    if (tag === 'tr') return [{ type: 'tableRow', children }];
+    if (tag === 'th' || tag === 'td') return [{ type: 'tableCell', content: tag, children }];
+    if (tag === 'a') return [{ type: 'link', url: attrs.href, title: attrs.title, children }];
+    if (tag === 'strong' || tag === 'b') return [{ type: 'strong', children }];
+    if (tag === 'em' || tag === 'i') return [{ type: 'emphasis', children }];
+    if (tag === 'del' || tag === 's' || tag === 'strike') return [{ type: 'delete', children }];
+    if (tag === 'code') return [{ type: 'inlineCode', content: children.map(child => child.content || '').join('') }];
+    if (tag === 'script' || tag === 'style' || tag === 'iframe' || tag === 'svg') return [];
+    if (['ul', 'ol'].includes(tag)) return [{ type: 'list', ordered: tag === 'ol', children: children.filter(child => child.type === 'listItem') }];
+    if (tag === 'li') {
+      const checkbox = element.children.find(child => child.type === 'tag' && child.name === 'input' && child.attribs.type === 'checkbox') as Element | undefined;
+      const cleanChildren = checkbox ? children.filter(child => child.type !== 'htmlElement') : children;
+      return [{ type: 'listItem', checked: checkbox ? 'checked' in checkbox.attribs : undefined, children: cleanChildren }];
+    }
+    return children.length ? [{ type: 'htmlElement', content: tag, attributes: attrs, children }] : [];
+  });
+}
+
 function normalizeInlineContent(nodes: Node[]): NormalizedBlock[] {
   const result: NormalizedBlock[] = [];
   let currentText = '';
-  let currentEmphasis: 'strong' | 'emphasis' | null = null;
-
   for (const node of nodes) {
     switch (node.type) {
       case 'text': {
@@ -136,6 +205,22 @@ function normalizeInlineContent(nodes: Node[]): NormalizedBlock[] {
         currentText += text.value;
         break;
       }
+
+      case 'html': {
+        if (currentText) { result.push({ type: 'text', content: currentText }); currentText = ''; }
+        result.push(...normalizeHtml(String((node as any).value || '')));
+        break;
+      }
+
+      case 'mdxJsxTextElement': {
+        if (currentText) { result.push({ type: 'text', content: currentText }); currentText = ''; }
+        const jsx = node as any;
+        result.push({ type: jsx.name === 'br' ? 'htmlBreak' : 'htmlElement', content: jsx.name || 'span', children: normalizeInlineContent(jsx.children || []) });
+        break;
+      }
+      case 'mdxTextExpression':
+        // Never execute embedded JavaScript.
+        break;
 
       case 'inlineCode': {
         if (currentText) {
@@ -202,6 +287,26 @@ function normalizeInlineContent(nodes: Node[]): NormalizedBlock[] {
 
       case 'break': {
         currentText += '\n';
+        break;
+      }
+
+      case 'delete': {
+        if (currentText) {
+          result.push({ type: 'text', content: currentText });
+          currentText = '';
+        }
+        result.push({ type: 'delete', children: normalizeInlineContent((node as any).children || []) });
+        break;
+      }
+
+      case 'linkReference':
+      case 'imageReference': {
+        const reference = node as any;
+        if (currentText) {
+          result.push({ type: 'text', content: currentText });
+          currentText = '';
+        }
+        result.push({ type: node.type === 'linkReference' ? 'link' : 'image', url: reference.identifier, alt: reference.label, children: normalizeInlineContent(reference.children || []) });
         break;
       }
 
