@@ -49,7 +49,7 @@ export const lightTheme: Theme = {
     link: '#0066cc',
   },
   spacing: {
-    padding: 40,
+    padding: 32,
     gap: 24,
     blockquotePadding: 20,
     codePadding: 16,
@@ -81,7 +81,7 @@ export const darkTheme: Theme = {
     link: '#4da6ff',
   },
   spacing: {
-    padding: 40,
+    padding: 32,
     gap: 24,
     blockquotePadding: 20,
     codePadding: 16,

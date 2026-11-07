@@ -11,7 +11,8 @@ A production-ready Node.js library that converts Markdown files or strings into 
 - 🎯 **Syntax Highlighting**: Powered by Shiki for beautiful code blocks
 - 📦 **Multiple Formats**: Export as PNG, SVG, or base64
 - 🖥️ **CLI Tool**: Command-line interface for quick conversions
-- 📝 **GitHub Flavored Markdown**: Full GFM support
+- 📝 **GitHub Flavored Markdown**: Parsed with Micromark's GFM extensions, including tables, autolinks, footnotes, strikethrough, and task lists
+- 🧩 **MDX and HTML**: Basic JSX elements and common HTML tags are rendered without executing embedded JavaScript
 
 ## Installation
 
@@ -164,6 +165,10 @@ await renderMarkdownToImage({
 - Links
 - Horizontal rules
 - Syntax highlighting (via Shiki)
+- GFM tables, task lists, autolinks, footnotes, and strikethrough
+- Common HTML elements, images, and basic MDX JSX
+
+GFM parsing follows the open GitHub Flavored Markdown specification. GitHub applies additional HTML sanitization and site-specific rendering rules, so the generated image is similar to GitHub's presentation but not pixel-identical. MDX expressions, imports, and exports are not executed.
 
 ## Examples
 

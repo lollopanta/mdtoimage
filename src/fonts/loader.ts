@@ -24,7 +24,7 @@ export function loadFont(config: FontConfig): LoadedFont {
   
   return {
     name: config.name || 'Font',
-    data: fontData.buffer,
+    data: fontData.buffer.slice(fontData.byteOffset, fontData.byteOffset + fontData.byteLength) as ArrayBuffer,
     weight,
     style: (config.style || 'normal') as 'normal' | 'italic',
   };
@@ -71,28 +71,10 @@ export async function loadFontsForSatori(
 ): Promise<LoadedFont[]> {
   const loaded: LoadedFont[] = [];
 
-  try {
-    if (fonts.body.path) {
-      loaded.push(loadFont(fonts.body));
-    }
-  } catch (error) {
-    console.warn(`Failed to load body font: ${fonts.body.path}`, error);
-  }
-
-  try {
-    if (fonts.heading.path) {
-      loaded.push(loadFont(fonts.heading));
-    }
-  } catch (error) {
-    console.warn(`Failed to load heading font: ${fonts.heading.path}`, error);
-  }
-
-  try {
-    if (fonts.code.path) {
-      loaded.push(loadFont(fonts.code));
-    }
-  } catch (error) {
-    console.warn(`Failed to load code font: ${fonts.code.path}`, error);
+  for (const font of [fonts.body, fonts.heading, fonts.code]) {
+    if (!font.path) continue;
+    const existing = loaded.find(item => item.name === font.name && item.weight === font.weight && item.style === font.style);
+    if (!existing) loaded.push(loadFont(font));
   }
 
   // If no fonts were loaded, use fallback fonts from CDN
