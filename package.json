@@ -1,6 +1,6 @@
 {
   "name": "@lollopanta/mdtoimage",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Convert Markdown to images using Satori and Sharp",
   "type": "module",
   "homepage": "https://github.com/lollopanta/mdtoimage",
